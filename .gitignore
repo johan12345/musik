@@ -2,9 +2,10 @@
 
 # Package Files #
 *.jar
-*.war
-*.ear
 
 /out/
 .idea/
 *.iml
+
+.gradle/
+build/
