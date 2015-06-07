@@ -8,7 +8,7 @@ import com.sun.tools.visualvm.charts.SimpleXYChartDescriptor;
 import com.sun.tools.visualvm.charts.SimpleXYChartSupport;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.LogAxis;
+import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -22,6 +22,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -63,6 +64,7 @@ public class MainGui {
 
     public MainGui() {
         fourierChart = new ChartPanel(null);
+        scaleUIFonts(2);
         $$$setupUI$$$();
         deviceInfos = MidiSystem.getMidiDeviceInfo();
         lstMidiDevices.setListData(deviceInfos);
@@ -121,10 +123,14 @@ public class MainGui {
         dataset.addSeries(fourierPlot);
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(true, false);
         NumberAxis yAxis = new NumberAxis("Amplitude");
-        LogAxis xAxis = new LogAxis("f / Hz");
+        LogarithmicAxis xAxis = new LogarithmicAxis("f / Hz");
         yAxis.setRange(0, 600);
         XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);
         fourierChart.setChart(new JFreeChart(plot));
+        xAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 20));
+        xAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 20));
+        yAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 20));
+        yAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 20));
 
         SimpleXYChartDescriptor descriptor =
                 SimpleXYChartDescriptor.decimal(0, 1000, 1000, 1d, true, 44100);
@@ -148,7 +154,7 @@ public class MainGui {
 
         Timer timer = new Timer(true);
         TimerTask task = new TimerTask() {
-            private static final double MIN = 10;
+            private static final double MIN = 20;
             private static final double MAX = 4000;
             private static final double STEP = 1.01;
 
@@ -177,6 +183,17 @@ public class MainGui {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    private static void scaleUIFonts(float scale) {
+        java.util.Enumeration keys = UIManager.getDefaults().keys();
+        while (keys.hasMoreElements()) {
+            Object key = keys.nextElement();
+            Object value = UIManager.get(key);
+            if (value != null && value instanceof javax.swing.plaf.FontUIResource)
+                UIManager.put(key, new FontUIResource(((FontUIResource) value).getFontName(), (
+                        (FontUIResource) value).getStyle(), (int) (((FontUIResource) value).getSize() * scale)));
+        }
     }
 
     private void refreshTuning() {
@@ -253,7 +270,7 @@ public class MainGui {
     }
 
     private void createUIComponents() {
-        // TODO: place custom component creation code here
+        // place custom component creation code here
     }
 
     /**
