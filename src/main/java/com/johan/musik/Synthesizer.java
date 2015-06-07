@@ -24,8 +24,8 @@ public class Synthesizer extends MidiReceiver {
     private double lastToneFreq;
     private List<AudioThreadListener> listeners = new ArrayList<>();
 
-    public Synthesizer(int channel, double overtoneExpansion, Tuning tuning, double[] overtoneAmplitudes) throws LineUnavailableException {
-        super(channel);
+    public Synthesizer(double overtoneExpansion, Tuning tuning, double[] overtoneAmplitudes) throws LineUnavailableException {
+        super();
         this.overtoneExpansion = overtoneExpansion;
         this.tuning = tuning;
         setOvertoneAmplitudes(overtoneAmplitudes);

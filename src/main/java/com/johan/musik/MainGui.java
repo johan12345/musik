@@ -236,7 +236,7 @@ public class MainGui {
                 device = MidiSystem.getMidiDevice(info);
                 if (!(device.isOpen())) device.open();
             }
-            receiver = new Synthesizer(channel, overtoneExpansion, tuning, overtoneAmplitudes);
+            receiver = new Synthesizer(overtoneExpansion, tuning, overtoneAmplitudes);
             device.getTransmitter().setReceiver(receiver);
             if (device instanceof Sequencer) ((Sequencer) device).start();
         } catch (MidiUnavailableException | LineUnavailableException | InvalidMidiDataException | IOException e) {
