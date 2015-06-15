@@ -1,11 +1,11 @@
 package com.johan.musik;
 
 public interface EnvelopeProvider {
-    public void startSustain();
+    void startSustain();
 
-    public void stopSustain();
+    void stopSustain();
 
-    public void releaseTone();
+    void releaseTone();
 
-    public double getEnvelopeValue();
+    double getEnvelopeValue();
 }

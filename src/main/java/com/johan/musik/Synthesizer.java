@@ -11,9 +11,8 @@ public class Synthesizer extends MidiReceiver {
     public static final float SAMPLE_RATE = 44100;
     private static final int SAMPLE_SIZE = 2;
     private static final int BUFFER_SIZE = 4400;
-    private static final short AMPLITUDE = 1000;
     private final Map<Integer, Tone> tones = Collections.synchronizedMap(new HashMap<Integer, Tone>());
-    private final AudioThread thread = new AudioThread();
+    private short amplitude = 1000;
     private Tuning tuning;
     private SourceDataLine line;
     private boolean stop = false;
@@ -52,13 +51,14 @@ public class Synthesizer extends MidiReceiver {
             }
         });
         line.start();
+        AudioThread thread = new AudioThread();
         thread.start();
     }
 
     @Override
     protected void startTone(int toneNum) {
         Tone tone = new Tone();
-        tone.envelopeProvider = new AdsrEnvelopeProvider(a, d, s, r, AMPLITUDE);
+        tone.envelopeProvider = new AdsrEnvelopeProvider(a, d, s, r, amplitude);
         if (sustain) tone.envelopeProvider.startSustain();
         tones.put(toneNum, tone);
 
@@ -155,6 +155,11 @@ public class Synthesizer extends MidiReceiver {
         this.d = d;
         this.s = s;
         this.r = r;
+    }
+
+
+    public void setAmplitude(short amplitude) {
+        this.amplitude = amplitude;
     }
 
     public interface AudioThreadListener {
