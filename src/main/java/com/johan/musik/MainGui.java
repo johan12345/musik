@@ -26,10 +26,8 @@ import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainGui {
     private static final String[] TONE_NAMES = new String[]{"C", "C#", "D", "D#", "E", "F",
@@ -54,6 +52,10 @@ public class MainGui {
     private JPanel waveformPanel;
     private ChartPanel fourierChart;
     private JList<String> lstOvertones;
+    private JSpinner spnA;
+    private JSpinner spnD;
+    private JSpinner spnS;
+    private JSpinner spnR;
     private XYSeries fourierPlot;
     private SimpleXYChartSupport waveformChart;
     private MidiDevice.Info[] deviceInfos;
@@ -115,6 +117,22 @@ public class MainGui {
                 receiver.setOvertoneAmplitudes(OVERTONE_AMPLITUDES[lstOvertones.getSelectedIndex()]);
             }
         });
+        spnA.setModel(new SpinnerNumberModel(800, 0, 5000, 0.1));
+        spnD.setModel(new SpinnerNumberModel(10, 0, 5000, 0.1));
+        spnS.setModel(new SpinnerNumberModel(0.5, 0, 1, 0.01));
+        spnR.setModel(new SpinnerNumberModel(100, 0, 5000, 0.1));
+        ChangeListener adsrChange = new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                receiver.setAdsr(doubleValue(spnA), doubleValue(spnD), doubleValue(spnS),
+                        doubleValue(spnR));
+            }
+        };
+        spnA.addChangeListener(adsrChange);
+        spnD.addChangeListener(adsrChange);
+        spnS.addChangeListener(adsrChange);
+        spnR.addChangeListener(adsrChange);
+
         initialize();
         refreshTuning();
 
@@ -186,11 +204,11 @@ public class MainGui {
     }
 
     private static void scaleUIFonts(float scale) {
-        java.util.Enumeration keys = UIManager.getDefaults().keys();
+        Enumeration keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
             Object key = keys.nextElement();
             Object value = UIManager.get(key);
-            if (value != null && value instanceof javax.swing.plaf.FontUIResource)
+            if (value != null && value instanceof FontUIResource)
                 UIManager.put(key, new FontUIResource(((FontUIResource) value).getFontName(), (
                         (FontUIResource) value).getStyle(), (int) (((FontUIResource) value).getSize() * scale)));
         }
@@ -254,6 +272,8 @@ public class MainGui {
                 if (!(device.isOpen())) device.open();
             }
             receiver = new Synthesizer(overtoneExpansion, tuning, overtoneAmplitudes);
+            receiver.setAdsr(doubleValue(spnA), doubleValue(spnD), doubleValue(spnS),
+                    doubleValue(spnR));
             device.getTransmitter().setReceiver(receiver);
             if (device instanceof Sequencer) ((Sequencer) device).start();
         } catch (MidiUnavailableException | LineUnavailableException | InvalidMidiDataException | IOException e) {
@@ -283,7 +303,7 @@ public class MainGui {
     private void $$$setupUI$$$() {
         createUIComponents();
         mainLayout = new JPanel();
-        mainLayout.setLayout(new GridLayoutManager(2, 3, new Insets(0, 0, 0, 0), -1, -1));
+        mainLayout.setLayout(new GridLayoutManager(2, 4, new Insets(0, 0, 0, 0), -1, -1));
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
         mainLayout.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
@@ -328,6 +348,30 @@ public class MainGui {
         panel4.setBorder(BorderFactory.createTitledBorder("Obertöne"));
         lstOvertones = new JList();
         panel4.add(lstOvertones, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
+        final JPanel panel5 = new JPanel();
+        panel5.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
+        mainLayout.add(panel5, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        panel5.setBorder(BorderFactory.createTitledBorder("Amplitude im Zeitverlauf"));
+        spnA = new JSpinner();
+        panel5.add(spnA, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label4 = new JLabel();
+        label4.setText("Attack Rate");
+        panel5.add(label4, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label5 = new JLabel();
+        label5.setText("Decay Rate");
+        panel5.add(label5, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label6 = new JLabel();
+        label6.setText("Sustain Amplitude");
+        panel5.add(label6, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label7 = new JLabel();
+        label7.setText("Release Rate");
+        panel5.add(label7, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        spnD = new JSpinner();
+        panel5.add(spnD, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        spnS = new JSpinner();
+        panel5.add(spnS, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        spnR = new JSpinner();
+        panel5.add(spnR, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**

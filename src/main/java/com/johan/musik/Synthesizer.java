@@ -24,10 +24,16 @@ public class Synthesizer extends MidiReceiver {
     private double lastToneFreq;
     private List<AudioThreadListener> listeners = new ArrayList<>();
 
+    private double a;
+    private double d;
+    private double s;
+    private double r;
+
     public Synthesizer(double overtoneExpansion, Tuning tuning, double[] overtoneAmplitudes) throws LineUnavailableException {
         super();
         this.overtoneExpansion = overtoneExpansion;
         this.tuning = tuning;
+        setAdsr(800, 10, 0.5, 100);
         setOvertoneAmplitudes(overtoneAmplitudes);
         AudioFormat format = new AudioFormat(
                 SAMPLE_RATE,
@@ -52,7 +58,7 @@ public class Synthesizer extends MidiReceiver {
     @Override
     protected void startTone(int toneNum) {
         Tone tone = new Tone();
-        tone.envelopeProvider = new AdsrEnvelopeProvider(800, 10, 0.5, 100, AMPLITUDE);
+        tone.envelopeProvider = new AdsrEnvelopeProvider(a, d, s, r, AMPLITUDE);
         if (sustain) tone.envelopeProvider.startSustain();
         tones.put(toneNum, tone);
 
@@ -142,6 +148,13 @@ public class Synthesizer extends MidiReceiver {
             sum += Math.pow(amplitude, 2);
         }
         amplitudeCalibration = Math.sqrt(sum);
+    }
+
+    public void setAdsr(double a, double d, double s, double r) {
+        this.a = a;
+        this.d = d;
+        this.s = s;
+        this.r = r;
     }
 
     public interface AudioThreadListener {
