@@ -1,7 +1,7 @@
 package com.johan.musik.tuning;
 
 /**
- * Meantone Tuning
+ * Just Tuning
  * Source: http://www.phy.mtu.edu/~suits/scales.html
  */
 public class JustTuning extends IntervalBasedTuning implements Tuning {
