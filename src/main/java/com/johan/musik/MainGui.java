@@ -68,7 +68,7 @@ public class MainGui {
 
     public MainGui() {
         fourierChart = new ChartPanel(null);
-        scaleUIFonts(2);
+        scaleUIFonts(1.3f);
         $$$setupUI$$$();
         MidiDevice.Info[] deviceInfos = MidiSystem.getMidiDeviceInfo();
         lstMidiDevices.setListData(deviceInfos);
@@ -135,41 +135,32 @@ public class MainGui {
         spnS.addChangeListener(adsrChange);
         spnR.addChangeListener(adsrChange);
 
-        sldVolume.setMaximum(Short.MAX_VALUE);
+        sldVolume.setMaximum(10000);
         sldVolume.setMinimum(0);
-        sldVolume.setValue(10000);
         sldVolume.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
                 receiver.setAmplitude((short) sldVolume.getValue());
                 lblVolume.setText(String.valueOf(sldVolume.getValue()));
+                refreshFourierPlot();
             }
         });
 
         initialize();
         refreshTuning();
+        refreshFourierPlot();
 
-        fourierPlot = new XYSeries("Amplitude", false, false);
-        XYSeriesCollection dataset = new XYSeriesCollection();
-        dataset.addSeries(fourierPlot);
-        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(true, false);
-        NumberAxis yAxis = new NumberAxis("Amplitude");
-        LogarithmicAxis xAxis = new LogarithmicAxis("f / Hz");
-        yAxis.setRange(0, 600);
-        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);
-        fourierChart.setChart(new JFreeChart(plot));
-        xAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 20));
-        xAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 20));
-        yAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 20));
-        yAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 20));
+        sldVolume.setValue(8000);
 
         SimpleXYChartDescriptor descriptor =
-                SimpleXYChartDescriptor.decimal(0, 1000, 1000, 1d, true, 44100);
+                SimpleXYChartDescriptor.decimal(0, 100 * receiver.getAmplitude(), 1000, 1d, true,
+                        44100);
         descriptor.addLineFillItems("Amplitude");
         descriptor.setChartTitle("<html><font size='+1'><b>Wellenform</b></font></html>");
         descriptor.setXAxisDescription("<html>Zeit / s</html>");
         descriptor.setYAxisDescription("<html>Amplitude</html>");
         waveformChart = ChartFactory.createSimpleXYChart(descriptor);
+        waveformPanel.removeAll();
         waveformPanel.add(waveformChart.getChart(), new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(500, 300), null, 0, false));
         receiver.addAudioThreadListener(new Synthesizer.AudioThreadListener() {
             @Override
@@ -225,6 +216,22 @@ public class MainGui {
                 UIManager.put(key, new FontUIResource(((FontUIResource) value).getFontName(), (
                         (FontUIResource) value).getStyle(), (int) (((FontUIResource) value).getSize() * scale)));
         }
+    }
+
+    private void refreshFourierPlot() {
+        fourierPlot = new XYSeries("Amplitude", false, false);
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(fourierPlot);
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(true, false);
+        NumberAxis yAxis = new NumberAxis("Amplitude");
+        LogarithmicAxis xAxis = new LogarithmicAxis("f / Hz");
+        yAxis.setRange(0, 6. / 10 * receiver.getAmplitude());
+        XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);
+        fourierChart.setChart(new JFreeChart(plot));
+        xAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        xAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        yAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        yAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
     }
 
     private void refreshTuning() {
@@ -316,7 +323,7 @@ public class MainGui {
     private void $$$setupUI$$$() {
         createUIComponents();
         mainLayout = new JPanel();
-        mainLayout.setLayout(new GridLayoutManager(2, 4, new Insets(0, 0, 0, 0), -1, -1));
+        mainLayout.setLayout(new GridLayoutManager(3, 3, new Insets(0, 0, 0, 0), -1, -1));
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
         mainLayout.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
@@ -362,40 +369,40 @@ public class MainGui {
         lstOvertones = new JList();
         panel4.add(lstOvertones, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
         final JPanel panel5 = new JPanel();
-        panel5.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
-        mainLayout.add(panel5, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        panel5.setBorder(BorderFactory.createTitledBorder("Amplitude im Zeitverlauf"));
-        spnA = new JSpinner();
-        panel5.add(spnA, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JLabel label4 = new JLabel();
-        label4.setText("Attack Rate / s^-1");
-        panel5.add(label4, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JLabel label5 = new JLabel();
-        label5.setText("Decay Rate / s^-1");
-        panel5.add(label5, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JLabel label6 = new JLabel();
-        label6.setText("Sustain Amplitude");
-        panel5.add(label6, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JLabel label7 = new JLabel();
-        label7.setText("Release Rate / s^-1");
-        panel5.add(label7, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        spnD = new JSpinner();
-        panel5.add(spnD, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        spnS = new JSpinner();
-        panel5.add(spnS, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        spnR = new JSpinner();
-        panel5.add(spnR, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JPanel panel6 = new JPanel();
-        panel6.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
-        mainLayout.add(panel6, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        panel6.setBorder(BorderFactory.createTitledBorder("Lautstärke"));
+        panel5.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+        mainLayout.add(panel5, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        panel5.setBorder(BorderFactory.createTitledBorder("Lautstärke"));
         sldVolume = new JSlider();
-        panel6.add(sldVolume, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel5.add(sldVolume, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final Spacer spacer1 = new Spacer();
-        panel6.add(spacer1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        panel5.add(spacer1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         lblVolume = new JLabel();
         lblVolume.setText("1000");
-        panel6.add(lblVolume, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel5.add(lblVolume, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JPanel panel6 = new JPanel();
+        panel6.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
+        mainLayout.add(panel6, new GridConstraints(2, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        panel6.setBorder(BorderFactory.createTitledBorder("Amplitude im Zeitverlauf"));
+        spnA = new JSpinner();
+        panel6.add(spnA, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label4 = new JLabel();
+        label4.setText("Attack Rate / s^-1");
+        panel6.add(label4, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label5 = new JLabel();
+        label5.setText("Decay Rate / s^-1");
+        panel6.add(label5, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label6 = new JLabel();
+        label6.setText("Sustain Amplitude");
+        panel6.add(label6, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label7 = new JLabel();
+        label7.setText("Release Rate / s^-1");
+        panel6.add(label7, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        spnD = new JSpinner();
+        panel6.add(spnD, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        spnS = new JSpinner();
+        panel6.add(spnS, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        spnR = new JSpinner();
+        panel6.add(spnR, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**

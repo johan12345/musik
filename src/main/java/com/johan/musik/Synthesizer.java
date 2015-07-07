@@ -157,6 +157,9 @@ public class Synthesizer extends MidiReceiver {
         this.r = r;
     }
 
+    public short getAmplitude() {
+        return amplitude;
+    }
 
     public void setAmplitude(short amplitude) {
         this.amplitude = amplitude;
